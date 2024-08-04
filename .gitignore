@@ -1,0 +1,24 @@
+# 가상 환경
+venv/
+env/
+
+# 파이썬 컴파일된 파일
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE/편집기 설정 파일
+.idea/
+.vscode/
+
+# OS 생성 파일
+.DS_Store
+
+# 로그 파일
+*.log
+
+# 빌드 및 배포 폴더
+dist/
+build/
+*.egg-info/
