@@ -1,38 +1,47 @@
+# FastAPI와 관련된 모듈을 가져옴
 from fastapi import FastAPI, HTTPException, Depends
 from typing import Annotated
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from database import SessionLocal, engine
-import models 
-from fastapi.middleware.cors import CORSMiddleware
+from database import SessionLocal, engine  # 데이터베이스 세션과 엔진을 가져옴
+import models  # 데이터베이스 모델을 가져옴
+from fastapi.middleware.cors import CORSMiddleware  # CORS 미들웨어를 가져옴
 
+# FastAPI 애플리케이션 객체를 생성함
 app = FastAPI()
 
-origins =[
-  'http://localhost:3000'
+# 허용할 출처 목록을 정의함
+origins = [
+    'http://localhost:3000'  # 프론트엔드 애플리케이션이 호스팅되는 URL을 허용함
 ]
 
+# CORS 미들웨어를 추가하여 지정된 출처에서 오는 요청을 허용함
 app.add_middleware(
-  CORSMiddleware,allow_origins=origins,
+    CORSMiddleware,
+    allow_origins=origins,  # 허용할 출처를 설정함
 )
 
+# 거래 데이터의 기본 정보를 정의하는 *Pydantic 모델임
+## Pydantic 모델 = 데이터를 확인하여 정확성을 보장하고, 다양한 형식으로 변환하는데 도움을 줌
 class TransactionBase(BaseModel):
-  amount: float
-  category:str
-  description:str
-  is_income:bool
-  date:str
-  
+    amount: float  # 거래 금액
+    category: str  # 거래 카테고리
+    description: str  # 거래 설명
+    is_income: bool  # 수입 여부 (True: 수입, False: 지출)
+    date: str  # 거래 날짜
+
+# 거래 데이터 모델로, ID가 포함된 Pydantic 모델임
 class Transaction(TransactionBase):
-  id: int
-  
-  class Config:
-    orm_mode = True
+    id: int  # 거래의 고유 ID
     
+    class Config:
+        orm_mode = True  # SQLAlchemy ORM 객체를 Pydantic 모델로 변환할 수 있도록 설정함
+
+# *데이터베이스 세션을 생성하고 관리하는 함수임
+## 데이터베이스 세션 = 데이터베이스와의 연결을 관리하며, SQL 쿼리 실행, 트랜잭션 처리, 데이터 읽기 및 쓰기를 담당
 def get_db():
-  db = SessionLocal()
-  try:
-    yield db
-  finally:
-    db.close()
-  
+    db = SessionLocal()  # 새로운 데이터베이스 세션을 생성함
+    try:
+        yield db  # 데이터베이스 세션을 호출자에게 제공함
+    finally:
+        db.close()  # 작업이 끝난 후 세션을 종료함
