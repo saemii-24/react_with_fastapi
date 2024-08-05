@@ -1,6 +1,6 @@
 # FastAPI와 관련된 모듈을 가져옴
 from fastapi import FastAPI, HTTPException, Depends
-from typing import Annotated
+from typing import Annotated, List
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import SessionLocal, engine  # 데이터베이스 세션과 엔진을 가져옴
@@ -31,7 +31,7 @@ class TransactionBase(BaseModel):
     date: str  # 거래 날짜
 
 # 거래 데이터 모델로, ID가 포함된 Pydantic 모델임
-class Transaction(TransactionBase):
+class TransactionModel(TransactionBase):
     id: int  # 거래의 고유 ID
     
     class Config:
@@ -45,3 +45,23 @@ def get_db():
         yield db  # 데이터베이스 세션을 호출자에게 제공함
     finally:
         db.close()  # 작업이 끝난 후 세션을 종료함
+
+
+db_dependency = Annotated[Session, Depends(get_db)]
+
+# 모든 모델을 데이터베이스에 생성함.
+models.Base.metadata.create_all(bind=engine)
+
+@app.post("/transactions/", response_model=TransactionModel)
+async def create_transaction(transaction: TransactionBase, db: db_dependency):
+    db_transaction = models.Transaction(**transaction.dict())
+    db.add(db_transaction)
+    db.commit()
+    db.refresh(db_transaction)
+    return db_transaction
+
+@app.get("/transactions/", response_model=List[TransactionModel])
+async def read_transactions(db: db_dependency, skip: int=0, limit: int=100):
+    transactions = db.query(models.Transaction).offset(skip).limit(limit).all()
+    return transactions
+    
