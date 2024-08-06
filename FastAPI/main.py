@@ -19,6 +19,9 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # 허용할 출처를 설정함
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 # 거래 데이터의 기본 정보를 정의하는 *Pydantic 모델임
