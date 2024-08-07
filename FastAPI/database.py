@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 # 데이터베이스 URL 설정
+## DB URL = 데이터베이스에 연결하기 위해 필요한 정보를 포함하는 문자열
 URL_DATABASE = 'sqlite:///./finance.db'
 
 # SQLAlchemy 엔진 생성
