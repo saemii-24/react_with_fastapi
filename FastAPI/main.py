@@ -32,6 +32,18 @@ class TransactionBase(BaseModel):
     description: str  # 거래 설명
     is_income: bool  # 수입 여부 (True: 수입, False: 지출)
     date: str  # 거래 날짜
+    
+class TodoBase(BaseModel): #Todo의 기본 데이터 구조를 정의한다.
+    date: str
+    done: bool
+    content:str
+
+class TodoModel(TodoBase): #Todobase에 확장해서 todomodel을 만든다
+# ts의 타입정의와 비슷한 역할을 한다.
+    id: int
+    class Config:
+        orm_mode = True  # SQLAlchemy ORM 객체를 Pydantic 모델로 변환할 수 있도록 설정함
+    
 
 # 거래 데이터 모델로, ID가 포함된 Pydantic 모델임
 class TransactionModel(TransactionBase):
@@ -68,3 +80,15 @@ async def read_transactions(db: db_dependency, skip: int=0, limit: int=100):
     transactions = db.query(models.Transaction).offset(skip).limit(limit).all()
     return transactions
     
+@app.post("/todo", response_model=TodoModel)
+async def create_todo(todo: TodoBase, db: db_dependency):
+    db_todo = models.Todo(**todo.dict())  # models.Todo를 사용하여 새로운 Todo 객체 생성
+    db.add(db_todo)  # 데이터베이스 세션에 추가
+    db.commit()  # 트랜잭션 커밋
+    db.refresh(db_todo)  # 데이터베이스에서 새로 추가된 객체를 새로고침
+    return db_todo  # 새로 생성된 Todo 객체 반환
+
+@app.get("/todo", response_model=List[TodoModel]) #응답은 여러개의 todo 항목을 리스트 형태로 변환함
+async def read_todos(db: db_dependency, skip: int=0, limit: int=100):
+    todos = db.query(models.Todo).offset(skip).limit(limit).all()  # Todo 테이블에서 데이터 조회
+    return todos  # 조회한 Todo 리스트 반환
